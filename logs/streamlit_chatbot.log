@@ -1,0 +1,5 @@
+2025-10-24 16:41:42,735 [INFO] [BOOT] Streamlit UI started version=ui-override-hf3-2025-10-24-logdir-portable log_dir=/Users/mingyulee/Desktop/workspace/ecs-project/tf-chatbot-ecs/logs
+2025-10-24 16:41:42,761 [INFO] Found credentials in shared credentials file: ~/.aws/credentials
+2025-10-24 16:42:06,513 [INFO] [BOOT] Streamlit UI started version=ui-override-hf3-2025-10-24-logdir-portable log_dir=/Users/mingyulee/Desktop/workspace/ecs-project/tf-chatbot-ecs/logs
+2025-10-24 16:42:07,706 [WARNING] [AWS RERANK 실패] 'AgentsforBedrockRuntime' object has no attribute 'rerank'
+2025-10-24 16:42:08,575 [WARNING] [Guardrail SSM 로드 실패] An error occurred (ParameterNotFound) when calling the GetParameter operation: 
