@@ -5,7 +5,7 @@ locals {
   alb_sg_id            = data.terraform_remote_state.stack1.outputs.alb_sg_id
   ecs_target_group_arn = data.terraform_remote_state.stack1.outputs.ecs_target_group_arn
 
-  # 운영 앱 로그는 이 그룹만 사용
+  # 운영 앱 로그 그룹 이름 (stack1이 생성/관리)
   log_group_name = var.chatbot_log_group_name
 }
 
@@ -13,24 +13,21 @@ locals {
 data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
-# SSM 파라미터 ARN (예: /chatbot/bedrock/kb_id) - ap-northeast-2
+# stack1이 먼저 생성, stack2 오직 "읽기"
+data "aws_cloudwatch_log_group" "app" {
+  name = local.log_group_name
+}
+
+# SSM 파라미터 ARN (/chatbot/bedrock/kb_id: ap-northeast-2)
 locals {
   kb_id_param_arn = "arn:aws:ssm:${data.aws_region.current.id}:${data.aws_caller_identity.current.account_id}:parameter${var.kb_id_ssm_parameter_name}"
 }
 
-# === us-east-1 Guardrail Param ARN (프리픽스 전체 허용) ===
+# us-east-1 Guardrail Param ARN
 locals {
   guardrail_param_prefix_arn = "arn:aws:ssm:us-east-1:${data.aws_caller_identity.current.account_id}:parameter${var.guardrail_ssm_prefix}*"
 }
 
-# ===== (신규) 운영 앱 로그 그룹을 명시적으로 선 생성 =====
-resource "aws_cloudwatch_log_group" "app" {
-  name              = local.log_group_name # "/chatbot/ecs-app"
-  retention_in_days = 30                   # 필요 시 조정
-  tags = { Project = "chatbot" }
-}
-
-# Task Role에 부여할 'SSM 읽기' 최소 권한
 # KB 파라미터(ap-northeast-2) + Guardrail 파라미터(us-east-1 프리픽스)
 resource "aws_iam_policy" "task_ssm_read" {
   name        = "chat-ecs-task-ssm-read"
@@ -50,7 +47,7 @@ resource "aws_iam_policy" "task_ssm_read" {
           local.guardrail_param_prefix_arn
         ]
       }
-      # Guardrail 파라미터가 SecureString + 고객 관리형 CMK이면 아래 kms:Decrypt와 키정책 허용도 추가 필요
+      # Guardrail 파라미터가 SecureString + 고객 관리형 CMK이면 아래 kms:Decrypt와 키정책 허용도 필요
       # ,{
       #   "Sid": "AllowKmsDecryptGuardrail",
       #   "Effect": "Allow",
@@ -167,11 +164,6 @@ module "ecs_service" {
   enable_execute_command = true
   force_delete           = true # 서비스 삭제 시 태스크 강제 종료
 
-  # ===== 로그 그룹이 반드시 먼저 만들어지게 보장 =====
-  depends_on = [
-    aws_cloudwatch_log_group.app
-  ]
-
   # 네트워킹
   subnet_ids         = local.private_subnet_ids
   security_group_ids = [aws_security_group.ecs_service_sg.id]
@@ -214,7 +206,7 @@ module "ecs_service" {
         protocol      = "tcp"
       }]
 
-      # CloudWatch Logs - 우리가 지정한 로그 그룹만 사용
+      # CloudWatch Logs - stack1이 만든 그룹만 사용 (여기서 생성하지 않음)
       enable_cloudwatch_logging   = true
       create_cloudwatch_log_group = false
       cloudwatch_log_group_name   = local.log_group_name

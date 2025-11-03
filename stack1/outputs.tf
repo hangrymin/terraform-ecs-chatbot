@@ -49,3 +49,8 @@ output "alb_sg_id" {
 output "ecs_target_group_arn" {
   value = module.alb.ecs_target_group_arn
 }
+
+# log 그룹 출력
+output "chatbot_log_group_name" {
+  value = var.chatbot_log_group_name
+}

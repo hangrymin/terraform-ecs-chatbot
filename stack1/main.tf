@@ -70,6 +70,6 @@ module "aurora" {
 
 # CloudWatch 로그 그룹 (ECS 컨테이너 로그)
 resource "aws_cloudwatch_log_group" "chatbot_app" {
-  name              = var.chatbot_log_group_name
+  name              = var.chatbot_log_group_name # "/chatbot/ecs-app"
   retention_in_days = var.chatbot_log_retention_days
 }
