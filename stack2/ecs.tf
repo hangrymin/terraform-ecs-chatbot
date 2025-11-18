@@ -106,7 +106,13 @@ resource "aws_iam_policy" "task_bedrock_permissions" {
   })
 }
 
-# ECS Cluster (Fargate)
+# 조건부 ECS 서비스 생성 로직
+locals {
+  # 이미지가 있고 desired_count > 0일 때만 ECS 서비스 생성
+  create_ecs_service = var.chatbot_image != "" && var.desired_count > 0
+}
+
+# ECS Cluster (Fargate) - 항상 생성
 module "ecs_cluster" {
   source = "terraform-aws-modules/ecs/aws//modules/cluster"
   # version = "~> 6.0"
@@ -152,7 +158,10 @@ resource "aws_security_group_rule" "alb_to_ecs_8501" {
   description              = "ALB to ECS 8501"
 }
 
+# ECS Service - 조건부 생성
 module "ecs_service" {
+  count = local.create_ecs_service ? 1 : 0
+  
   source = "terraform-aws-modules/ecs/aws//modules/service"
   # version = "~> 6.0"
 

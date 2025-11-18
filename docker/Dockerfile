@@ -40,7 +40,7 @@ EXPOSE 8501
 USER appuser
 
 # 메인 엔트리 (컨테이너 내부 경로는 /app 기준)
-CMD ["streamlit", "run", "app_nova_pro_prompt_template.py", \
+CMD ["streamlit", "run", "streamlit_ui.py", \
      "--server.port=8501", \
      "--server.address=0.0.0.0", \
      "--server.headless=true", \

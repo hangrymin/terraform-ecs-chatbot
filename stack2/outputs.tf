@@ -13,7 +13,8 @@ output "ecs_cluster_arn" {
 }
 
 output "ecs_service_name" {
-  value = module.ecs_service.name
+  value = length(module.ecs_service) > 0 ? module.ecs_service[0].name : ""
+  description = "ECS 서비스 이름 (서비스가 생성되지 않았으면 빈 문자열)"
 }
 
 output "ecs_service_security_group_id" {
